@@ -14,3 +14,23 @@ public sealed record AddressCalculationResult(
     int PrefixLength,
     string Cidr,
     IReadOnlyList<CalculationRow> Rows);
+
+public sealed record SubnetDivisionRow(
+    int Index,
+    string Cidr,
+    string NetworkAddress,
+    string LastAddress,
+    string BroadcastAddress,
+    string FirstUsableAddress,
+    string LastUsableAddress,
+    string TotalAddresses,
+    string UsableHosts);
+
+public sealed record SubnetDivisionResult(
+    IpAddressKind Kind,
+    string ParentCidr,
+    int ParentPrefixLength,
+    int NewPrefixLength,
+    string TotalSubnets,
+    bool IsTruncated,
+    IReadOnlyList<SubnetDivisionRow> Rows);
