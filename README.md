@@ -9,6 +9,7 @@
 - IPv6 CIDR 计算，例如 `2001:db8::1/64`
 - 输出网络地址、广播地址、首末可用地址、地址总数、掩码和反掩码
 - IPv6 输出压缩地址、展开地址、网络前缀和范围
+- 子网划分：输入母网和新前缀，生成 IPv4/IPv6 子网列表
 - 中文 WinForms 界面，支持单项结果复制
 
 ## 项目结构
@@ -30,6 +31,20 @@ dotnet publish .\IpAddressCalculator.App\IpAddressCalculator.App.csproj -c Relea
 ```text
 IpAddressCalculator.App\bin\Release\net10.0-windows\win-x64\publish\IPv4 IPv6地址计算器.exe
 ```
+
+生成自包含单文件版本：
+
+```powershell
+dotnet publish .\IpAddressCalculator.App\IpAddressCalculator.App.csproj -c Release -r win-x64 --self-contained true -o .\dist\v1.0.0 /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:DebugType=None /p:DebugSymbols=false
+```
+
+生成小体积单文件版本（需要目标电脑已安装 .NET Desktop Runtime）：
+
+```powershell
+dotnet publish .\IpAddressCalculator.App\IpAddressCalculator.App.csproj -c Release -r win-x64 --self-contained false -o .\dist\small /p:PublishSingleFile=true /p:DebugType=None /p:DebugSymbols=false
+```
+
+说明：自包含版本会把 .NET 桌面运行时一起打进 exe，所以文件会明显更大；WinForms 不支持安全裁剪发布，因此不启用 `PublishTrimmed`。
 
 ## 技术栈
 
