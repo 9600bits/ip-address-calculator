@@ -11,6 +11,56 @@ public static class SubnetCalculator
 
     public static AddressCalculationResult Calculate(string addressInput, string? prefixInput = null)
     {
+        var parsed = ParseAddressAndPrefix(addressInput, prefixInput);
+        return parsed.Kind == IpAddressKind.IPv4
+            ? CalculateIpv4(parsed.Address, parsed.PrefixLength)
+            : CalculateIpv6(parsed.Address, parsed.PrefixLength);
+    }
+
+    public static SubnetDivisionResult DivideSubnets(
+        string addressInput,
+        string? prefixInput,
+        string newPrefixInput,
+        int maxRows = 256)
+    {
+        var parsed = ParseAddressAndPrefix(addressInput, prefixInput);
+        if (string.IsNullOrWhiteSpace(newPrefixInput))
+        {
+            throw new FormatException("请输入划分后的新前缀长度。");
+        }
+
+        if (maxRows < 1 || maxRows > 4096)
+        {
+            throw new FormatException("最多显示条数必须在 1-4096 之间。");
+        }
+
+        if (parsed.Kind == IpAddressKind.IPv4)
+        {
+            var newPrefix = ParseNumericPrefix(newPrefixInput.Trim(), 32, "IPv4 新前缀长度必须是 0-32。");
+            if (newPrefix < parsed.PrefixLength)
+            {
+                throw new FormatException("新前缀长度必须大于或等于母网前缀长度。");
+            }
+
+            return DivideIpv4Subnets(parsed.Address, parsed.PrefixLength, newPrefix, maxRows);
+        }
+
+        if (newPrefixInput.Contains('.', StringComparison.Ordinal))
+        {
+            throw new FormatException("IPv6 新前缀长度必须是 0-128 的数字。");
+        }
+
+        var ipv6NewPrefix = ParseNumericPrefix(newPrefixInput.Trim(), 128, "IPv6 新前缀长度必须是 0-128。");
+        if (ipv6NewPrefix < parsed.PrefixLength)
+        {
+            throw new FormatException("新前缀长度必须大于或等于母网前缀长度。");
+        }
+
+        return DivideIpv6Subnets(parsed.Address, parsed.PrefixLength, ipv6NewPrefix, maxRows);
+    }
+
+    private static ParsedAddress ParseAddressAndPrefix(string addressInput, string? prefixInput)
+    {
         if (string.IsNullOrWhiteSpace(addressInput))
         {
             throw new FormatException("请输入 IPv4 或 IPv6 地址。");
@@ -45,7 +95,7 @@ public static class SubnetCalculator
         if (family == AddressFamily.InterNetwork)
         {
             var prefixLength = ParseIpv4Prefix(rawPrefix);
-            return CalculateIpv4(ipAddress, prefixLength);
+            return new ParsedAddress(IpAddressKind.IPv4, ipAddress, prefixLength);
         }
 
         if (rawPrefix.Contains('.', StringComparison.Ordinal))
@@ -54,7 +104,7 @@ public static class SubnetCalculator
         }
 
         var ipv6Prefix = ParseNumericPrefix(rawPrefix, 128, "IPv6 前缀长度必须是 0-128。");
-        return CalculateIpv6(ipAddress, ipv6Prefix);
+        return new ParsedAddress(IpAddressKind.IPv6, ipAddress, ipv6Prefix);
     }
 
     private static string ResolvePrefixInput(string? cidrPrefix, string? prefixInput)
@@ -138,6 +188,88 @@ public static class SubnetCalculator
         };
 
         return new AddressCalculationResult(IpAddressKind.IPv6, compressedAddress, prefixLength, cidr, rows);
+    }
+
+    private static SubnetDivisionResult DivideIpv4Subnets(IPAddress address, int parentPrefix, int newPrefix, int maxRows)
+    {
+        var ip = ReadUInt32(address);
+        var parentMask = PrefixToIpv4Mask(parentPrefix);
+        var parentNetwork = ip & parentMask;
+        var subnetCount = 1UL << (newPrefix - parentPrefix);
+        var subnetSize = 1UL << (32 - newPrefix);
+        var rowsToTake = (int)Math.Min((ulong)maxRows, subnetCount);
+        var rows = new List<SubnetDivisionRow>(rowsToTake);
+
+        for (var index = 0; index < rowsToTake; index++)
+        {
+            var network = parentNetwork + (uint)(subnetSize * (ulong)index);
+            var broadcast = network + (uint)(subnetSize - 1UL);
+            var firstUsable = newPrefix >= 31 ? network : network + 1U;
+            var lastUsable = newPrefix == 32 ? network : newPrefix == 31 ? broadcast : broadcast - 1U;
+            var usableHosts = newPrefix switch
+            {
+                32 => 1UL,
+                31 => 2UL,
+                _ => subnetSize - 2UL
+            };
+
+            rows.Add(new SubnetDivisionRow(
+                index + 1,
+                $"{UInt32ToIpv4(network)}/{newPrefix}",
+                UInt32ToIpv4(network),
+                UInt32ToIpv4(broadcast),
+                UInt32ToIpv4(broadcast),
+                UInt32ToIpv4(firstUsable),
+                UInt32ToIpv4(lastUsable),
+                subnetSize.ToString("N0", CultureInfo.InvariantCulture),
+                usableHosts.ToString("N0", CultureInfo.InvariantCulture)));
+        }
+
+        return new SubnetDivisionResult(
+            IpAddressKind.IPv4,
+            $"{UInt32ToIpv4(parentNetwork)}/{parentPrefix}",
+            parentPrefix,
+            newPrefix,
+            subnetCount.ToString("N0", CultureInfo.InvariantCulture),
+            subnetCount > (ulong)rowsToTake,
+            rows);
+    }
+
+    private static SubnetDivisionResult DivideIpv6Subnets(IPAddress address, int parentPrefix, int newPrefix, int maxRows)
+    {
+        var ip = ReadUInt128(address);
+        var parentHostMask = parentPrefix == 128 ? BigInteger.Zero : (BigInteger.One << (128 - parentPrefix)) - BigInteger.One;
+        var parentNetwork = ip & (Ipv6AllBits ^ parentHostMask);
+        var subnetCount = BigInteger.One << (newPrefix - parentPrefix);
+        var subnetSize = BigInteger.One << (128 - newPrefix);
+        var rowsToTake = (int)BigInteger.Min(new BigInteger(maxRows), subnetCount);
+        var rows = new List<SubnetDivisionRow>(rowsToTake);
+
+        for (var index = 0; index < rowsToTake; index++)
+        {
+            var network = parentNetwork + (subnetSize * index);
+            var last = network + subnetSize - BigInteger.One;
+
+            rows.Add(new SubnetDivisionRow(
+                index + 1,
+                $"{ToIpv6(network)}/{newPrefix}",
+                ToIpv6(network),
+                ToIpv6(last),
+                "-",
+                ToIpv6(network),
+                ToIpv6(last),
+                FormatBigInteger(subnetSize),
+                "-"));
+        }
+
+        return new SubnetDivisionResult(
+            IpAddressKind.IPv6,
+            $"{ToIpv6(parentNetwork)}/{parentPrefix}",
+            parentPrefix,
+            newPrefix,
+            FormatBigInteger(subnetCount),
+            subnetCount > rowsToTake,
+            rows);
     }
 
     private static int ParseIpv4Prefix(string value)
@@ -250,4 +382,6 @@ public static class SubnetCalculator
         var mantissa = $"{plain[0]}.{plain[1..Math.Min(4, plain.Length)]}";
         return $"{exact} (约 {mantissa}e{plain.Length - 1})";
     }
+
+    private sealed record ParsedAddress(IpAddressKind Kind, IPAddress Address, int PrefixLength);
 }
