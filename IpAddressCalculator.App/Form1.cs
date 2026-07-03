@@ -87,20 +87,20 @@ public partial class Form1 : Form
         var splitInputPanel = new TableLayoutPanel
         {
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-            ColumnCount = 8,
+            ColumnCount = 7,
             Location = new Point(12, 14),
             Name = "splitInputPanel",
-            RowCount = 1,
-            Size = new Size(divideTab.ClientSize.Width - 24, 38)
+            RowCount = 2,
+            Size = new Size(divideTab.ClientSize.Width - 24, 84)
         };
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 72F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 72F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 100F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
+        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
         splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 66F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 82F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 74F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 78F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
-        splitInputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 92F));
+        splitInputPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
         splitInputPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 38F));
 
         parentNetworkTextBox = new TextBox
@@ -120,25 +120,28 @@ public partial class Form1 : Form
         };
         divideButton = new Button
         {
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Anchor = AnchorStyles.Left,
+            Size = new Size(86, 32),
             Text = "划分",
             UseVisualStyleBackColor = true
         };
         clearDivisionButton = new Button
         {
-            Anchor = AnchorStyles.Left | AnchorStyles.Right,
+            Anchor = AnchorStyles.Left,
+            Size = new Size(86, 32),
             Text = "清空",
             UseVisualStyleBackColor = true
         };
 
         splitInputPanel.Controls.Add(CreateInputLabel("母网"), 0, 0);
         splitInputPanel.Controls.Add(parentNetworkTextBox, 1, 0);
-        splitInputPanel.Controls.Add(CreateInputLabel("新前缀"), 2, 0);
-        splitInputPanel.Controls.Add(splitPrefixTextBox, 3, 0);
-        splitInputPanel.Controls.Add(CreateInputLabel("显示数"), 4, 0);
-        splitInputPanel.Controls.Add(splitLimitTextBox, 5, 0);
-        splitInputPanel.Controls.Add(divideButton, 6, 0);
-        splitInputPanel.Controls.Add(clearDivisionButton, 7, 0);
+        splitInputPanel.SetColumnSpan(parentNetworkTextBox, 6);
+        splitInputPanel.Controls.Add(CreateInputLabel("新前缀"), 0, 1);
+        splitInputPanel.Controls.Add(splitPrefixTextBox, 1, 1);
+        splitInputPanel.Controls.Add(CreateInputLabel("显示数"), 2, 1);
+        splitInputPanel.Controls.Add(splitLimitTextBox, 3, 1);
+        splitInputPanel.Controls.Add(divideButton, 4, 1);
+        splitInputPanel.Controls.Add(clearDivisionButton, 5, 1);
 
         subnetCidrColumn = new DataGridViewTextBoxColumn
         {
@@ -167,13 +170,13 @@ public partial class Form1 : Form
             BackgroundColor = SystemColors.Window,
             BorderStyle = BorderStyle.Fixed3D,
             ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
-            Location = new Point(12, 64),
+            Location = new Point(12, 112),
             MultiSelect = false,
             Name = "subnetGrid",
             ReadOnly = true,
             RowHeadersVisible = false,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            Size = new Size(divideTab.ClientSize.Width - 24, divideTab.ClientSize.Height - 76),
+            Size = new Size(divideTab.ClientSize.Width - 24, divideTab.ClientSize.Height - 124),
             TabIndex = 1
         };
 
