@@ -111,6 +111,54 @@ public class SubnetCalculatorTests
         Assert.Contains("格式", ex.Message);
     }
 
+    [Fact]
+    public void DivideIpv4_Cidr24To26_ReturnsFourSubnets()
+    {
+        var result = SubnetCalculator.DivideSubnets("192.168.1.0/24", null, "26");
+
+        Assert.Equal(IpAddressKind.IPv4, result.Kind);
+        Assert.Equal("192.168.1.0/24", result.ParentCidr);
+        Assert.Equal("4", result.TotalSubnets);
+        Assert.False(result.IsTruncated);
+        Assert.Equal("192.168.1.0/26", result.Rows[0].Cidr);
+        Assert.Equal("192.168.1.63", result.Rows[0].BroadcastAddress);
+        Assert.Equal("192.168.1.64/26", result.Rows[1].Cidr);
+        Assert.Equal("192.168.1.192/26", result.Rows[3].Cidr);
+    }
+
+    [Fact]
+    public void DivideIpv4_RespectsMaxRows()
+    {
+        var result = SubnetCalculator.DivideSubnets("10.0.0.0/8", null, "24", maxRows: 3);
+
+        Assert.True(result.IsTruncated);
+        Assert.Equal(3, result.Rows.Count);
+        Assert.Equal("10.0.0.0/24", result.Rows[0].Cidr);
+        Assert.Equal("10.0.2.0/24", result.Rows[2].Cidr);
+    }
+
+    [Fact]
+    public void DivideIpv6_Cidr48To64_ReturnsExpectedFirstSubnets()
+    {
+        var result = SubnetCalculator.DivideSubnets("2001:db8::/48", null, "64", maxRows: 2);
+
+        Assert.Equal(IpAddressKind.IPv6, result.Kind);
+        Assert.Equal("2001:db8::/48", result.ParentCidr);
+        Assert.Equal("65,536", result.TotalSubnets);
+        Assert.True(result.IsTruncated);
+        Assert.Equal("2001:db8::/64", result.Rows[0].Cidr);
+        Assert.Equal("2001:db8:0:1::/64", result.Rows[1].Cidr);
+        Assert.Equal("-", result.Rows[0].BroadcastAddress);
+    }
+
+    [Fact]
+    public void DivideSubnets_NewPrefixCannotBeSmallerThanParentPrefix()
+    {
+        var ex = Assert.Throws<FormatException>(() => SubnetCalculator.DivideSubnets("192.168.1.0/24", null, "23"));
+
+        Assert.Contains("大于或等于", ex.Message);
+    }
+
     private static string Value(AddressCalculationResult result, string label)
     {
         return result.Rows.Single(row => row.Label == label).Value;
