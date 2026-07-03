@@ -6,5 +6,6 @@ obj/
 *.userosscache
 *.sln.docstates
 TestResults/
+dist/
 *.nupkg
 *.snupkg
