@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="IpAddressCalculator.App/IpAddressCalculator.App.csproj" />
+  <Project Path="IpAddressCalculator.Core/IpAddressCalculator.Core.csproj" />
+  <Project Path="IpAddressCalculator.Tests/IpAddressCalculator.Tests.csproj" />
+</Solution>
