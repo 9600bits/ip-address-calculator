@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="IP address calculator app icon">
+  <defs>
+    <linearGradient id="bg" x1="36" y1="28" x2="220" y2="228" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="0.55" stop-color="#155e75"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="68" y1="62" x2="188" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#d9f99d" stop-opacity="0.94"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#082f49" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <path d="M52 190V72c0-12 10-22 22-22h108c12 0 22 10 22 22v118c0 12-10 22-22 22H74c-12 0-22-10-22-22Z" fill="url(#panel)" filter="url(#shadow)"/>
+  <path d="M76 91h104M76 128h104M76 165h104" stroke="#0f766e" stroke-width="10" stroke-linecap="round" opacity="0.18"/>
+
+  <path d="M82 74h92c6 0 10 4 10 10v88c0 6-4 10-10 10H82c-6 0-10-4-10-10V84c0-6 4-10 10-10Z" fill="#f8fafc" opacity="0.92"/>
+  <path d="M88 138h80" stroke="#164e63" stroke-width="12" stroke-linecap="round"/>
+  <path d="M128 102v72" stroke="#164e63" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="88" cy="138" r="15" fill="#22c55e"/>
+  <circle cx="128" cy="102" r="15" fill="#38bdf8"/>
+  <circle cx="168" cy="138" r="15" fill="#22c55e"/>
+  <circle cx="128" cy="174" r="15" fill="#38bdf8"/>
+
+  <path d="M92 92h72c4 0 8 4 8 8v56c0 4-4 8-8 8H92c-4 0-8-4-8-8v-56c0-4 4-8 8-8Z" fill="#0f172a" opacity="0.9"/>
+  <text x="128" y="143" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="800" fill="#f8fafc">IP</text>
+  <path d="M196 56l8-18 8 18 18 8-18 8-8 18-8-18-18-8 18-8Z" fill="#bef264"/>
+</svg>
